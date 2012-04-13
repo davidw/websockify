@@ -35,7 +35,6 @@ char USAGE[] = "Usage: [options] " \
                "[source_addr:]source_port target_addr:target_port\n\n" \
                "  --verbose|-v       verbose messages and per frame traffic\n" \
                "  --daemon|-D        become a daemon (background process)\n" \
-               "  --single-shot|-S   Only accept one connect, then exit when it's gone\n" \
                "  --cert CERT        SSL certificate file\n" \
                "  --key KEY          SSL key file (if separate from cert)\n" \
                "  --ssl-only         disallow non-encrypted connections";
@@ -274,13 +273,12 @@ void proxy_handler(ws_ctx_t *ws_ctx) {
 int main(int argc, char *argv[])
 {
     int fd, c, option_index = 0;
-    static int ssl_only = 0, daemon = 0, verbose = 0, single_shot = 0;
+    static int ssl_only = 0, daemon = 0, verbose = 0;
     char *found;
     static struct option long_options[] = {
         {"verbose",    no_argument,       &verbose,    'v'},
         {"ssl-only",   no_argument,       &ssl_only,    1 },
         {"daemon",     no_argument,       &daemon,     'D'},
-        {"single-shot",no_argument,       &single_shot,'S'},
         /* ---- */
         {"cert",       required_argument, 0,           'c'},
         {"key",        required_argument, 0,           'k'},
@@ -295,7 +293,7 @@ int main(int argc, char *argv[])
     settings.key = "";
 
     while (1) {
-        c = getopt_long (argc, argv, "vDSc:k:",
+        c = getopt_long (argc, argv, "vDc:k:",
                          long_options, &option_index);
 
         /* Detect the end */
@@ -311,9 +309,6 @@ int main(int argc, char *argv[])
                 break;
             case 'D':
                 daemon = 1;
-                break;
-            case 'S':
-                single_shot = 1;
                 break;
             case 'c':
                 settings.cert = realpath(optarg, NULL);
@@ -334,7 +329,6 @@ int main(int argc, char *argv[])
     settings.verbose      = verbose;
     settings.ssl_only     = ssl_only;
     settings.daemon       = daemon;
-    settings.single_shot       = single_shot;
 
     if ((argc-optind) != 2) {
         usage("Invalid number of arguments\n");
